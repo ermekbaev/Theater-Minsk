@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 30 20% 95%;
+    --foreground: 20 14% 10%;
+
+    --card: 30 18% 97%;
+    --card-foreground: 20 14% 10%;
+
+    --popover: 30 18% 97%;
+    --popover-foreground: 20 14% 10%;
+
+    --primary: 345 72% 32%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 43 72% 52%;
+    --secondary-foreground: 20 14% 10%;
+
+    --muted: 30 15% 91%;
+    --muted-foreground: 20 8% 44%;
+
+    --accent: 43 72% 52%;
+    --accent-foreground: 20 14% 10%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 30 15% 87%;
+    --input: 30 15% 87%;
+    --ring: 345 72% 32%;
+
+    --radius: 0.5rem;
+
+    /* Emotion palette */
+    --emotion-joy: 45 96% 56%;
+    --emotion-melancholy: 213 94% 68%;
+    --emotion-tension: 263 70% 71%;
+    --emotion-passion: 0 94% 71%;
+    --emotion-wonder: 160 60% 50%;
+    --emotion-sadness: 220 50% 55%;
+
+    /* Custom tokens */
+    --gold: 43 72% 52%;
+    --gold-light: 43 80% 70%;
+    --crimson: 345 72% 32%;
+    --crimson-light: 345 60% 45%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .text-gold {
+    color: hsl(var(--gold));
+  }
+
+  .bg-gold {
+    background-color: hsl(var(--gold));
+  }
+
+  .text-crimson {
+    color: hsl(var(--crimson));
+  }
+
+  .bg-crimson {
+    background-color: hsl(var(--crimson));
+  }
+
+  .bg-gallery {
+    background-color: hsl(var(--background));
+  }
+}
