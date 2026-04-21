@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Theater {
+  id           String        @id
+  name         String
+  shortName    String
+  performances Performance[]
+}
+
+model Performance {
+  id             String           @id
+  theaterId      String
+  theater        Theater          @relation(fields: [theaterId], references: [id])
+  title          String
+  genre          String
+  duration       String
+  director       String
+  synopsis       String
+  imageUrl       String
+  heroImageUrl   String?
+  rating         Float
+  reviewCount    Int
+  premiere       String
+  emotionProfile EmotionProfile[]
+  targetAudience TargetAudience[]
+  reviews        Review[]
+  cast           CastMember[]
+}
+
+model EmotionProfile {
+  id            Int         @id @default(autoincrement())
+  performanceId String
+  performance   Performance @relation(fields: [performanceId], references: [id])
+  emotion       String
+  score         Int
+}
+
+model TargetAudience {
+  id            Int         @id @default(autoincrement())
+  performanceId String
+  performance   Performance @relation(fields: [performanceId], references: [id])
+  tag           String
+}
+
+model CastMember {
+  id            Int         @id @default(autoincrement())
+  performanceId String
+  performance   Performance @relation(fields: [performanceId], references: [id])
+  name          String
+}
+
+model Review {
+  id            String          @id
+  performanceId String
+  performance   Performance     @relation(fields: [performanceId], references: [id])
+  author        String
+  date          String
+  rating        Float
+  text          String
+  emotions      ReviewEmotion[]
+}
+
+model ReviewEmotion {
+  id       Int    @id @default(autoincrement())
+  reviewId String
+  review   Review @relation(fields: [reviewId], references: [id])
+  emotion  String
+  score    Int
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("USER")
+  createdAt DateTime @default(now())
+}
