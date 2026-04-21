@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Theater, Star, Sparkles, ArrowRight, Drama, Heart, Users, ChevronDown, LogOut, UserCircle } from 'lucide-react';
+import { Theater, Star, Sparkles, ArrowRight, Drama, Heart, Users, ChevronDown, LogOut, UserCircle, ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StarRating from '@/components/StarRating';
 import { EMOTIONS_MAP } from '@/data/types';
@@ -125,6 +125,18 @@ export default function LandingPage() {
                   <UserCircle size={18} className="text-accent" />
                   <span className="max-w-[120px] truncate">{session.user?.name}</span>
                 </div>
+                {(session.user as { role?: string }).role === 'ADMIN' && (
+                  <Button
+                    variant="ghost"
+                    className="gap-1.5 text-accent hover:text-accent/80 hover:bg-primary-foreground/10"
+                    asChild
+                  >
+                    <Link href="/admin">
+                      <ShieldCheck size={15} />
+                      Админка
+                    </Link>
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   className="gap-1.5 text-primary-foreground/80 hover:text-primary-foreground hover:bg-primary-foreground/10"
