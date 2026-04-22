@@ -3,8 +3,6 @@ export const dynamic = 'force-dynamic';
 import { prisma } from '@/lib/prisma';
 import PerformanceForm from '../_components/PerformanceForm';
 
-export const dynamic = 'force-dynamic';
-
 export default async function NewPerformancePage() {
   const theaters = await prisma.theater.findMany({ orderBy: { name: 'asc' } });
 
