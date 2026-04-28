@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Theater, Eye, EyeOff } from 'lucide-react';
+import { Theater, Eye, EyeOff, ShieldCheck, User } from 'lucide-react';
 import { signIn, useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,7 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/catalog';
@@ -43,7 +44,15 @@ function LoginForm() {
     if (res?.error) {
       setError('Неверный email или пароль');
     } else {
-      router.refresh();
+      const sessionRes = await fetch('/api/auth/session');
+      const sessionData = await sessionRes.json();
+      const role = (sessionData?.user as { role?: string })?.role;
+      if (isAdmin && role !== 'ADMIN') {
+        setError('У вас нет прав администратора');
+        await fetch('/api/auth/signout', { method: 'POST' });
+      } else {
+        router.refresh();
+      }
     }
   };
 
@@ -61,9 +70,37 @@ function LoginForm() {
         </span>
       </Link>
 
+      {/* Role toggle */}
+      <div className="mb-6 flex rounded-lg border border-border bg-muted/40 p-1">
+        <button
+          type="button"
+          onClick={() => setIsAdmin(false)}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 font-body text-sm font-medium transition-all ${
+            !isAdmin
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <User size={15} />
+          Пользователь
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsAdmin(true)}
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 font-body text-sm font-medium transition-all ${
+            isAdmin
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <ShieldCheck size={15} />
+          Администратор
+        </button>
+      </div>
+
       <h1 className="font-display text-3xl font-bold text-foreground">Вход</h1>
       <p className="mt-2 font-body text-muted-foreground">
-        Войдите в свой аккаунт, чтобы продолжить
+        {isAdmin ? 'Вход в панель управления' : 'Войдите в свой аккаунт, чтобы продолжить'}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-8 space-y-5">

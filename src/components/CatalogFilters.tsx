@@ -1,9 +1,15 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, SlidersHorizontal, Sparkles, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { THEATERS, THEATER_SHORT, GENRES, MOODS } from '@/data/types';
+import { GENRES, MOODS } from '@/data/types';
+
+interface TheaterOption {
+  id: string;
+  name: string;
+  shortName: string;
+}
 
 interface CatalogFiltersProps {
   search: string;
@@ -25,6 +31,14 @@ const CatalogFilters = ({
   onReset,
 }: CatalogFiltersProps) => {
   const [showFilters, setShowFilters] = useState(true);
+  const [theaters, setTheaters] = useState<TheaterOption[]>([]);
+
+  useEffect(() => {
+    fetch('/api/theaters')
+      .then((r) => r.json())
+      .then(setTheaters)
+      .catch(() => {});
+  }, []);
 
   const hasActiveFilters = search || selectedTheaters.length > 0 || selectedGenres.length > 0 || selectedMood;
 
@@ -91,16 +105,16 @@ const CatalogFilters = ({
         <div>
           <h3 className="mb-3 font-display text-sm font-semibold text-foreground">Театр</h3>
           <div className="space-y-1.5">
-            {THEATERS.map((theater) => (
-              <label key={theater} className="flex cursor-pointer items-center gap-2">
+            {theaters.map((theater) => (
+              <label key={theater.id} className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={selectedTheaters.includes(theater)}
-                  onChange={() => toggleItem(selectedTheaters, theater, onTheatersChange)}
+                  checked={selectedTheaters.includes(theater.name)}
+                  onChange={() => toggleItem(selectedTheaters, theater.name, onTheatersChange)}
                   className="h-4 w-4 rounded border-border text-primary accent-primary"
                 />
                 <span className="font-body text-sm text-muted-foreground">
-                  {THEATER_SHORT[theater] || theater}
+                  {theater.shortName || theater.name}
                 </span>
               </label>
             ))}
