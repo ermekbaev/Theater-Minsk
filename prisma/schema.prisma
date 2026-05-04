@@ -60,6 +60,8 @@ model Review {
   id            String          @id
   performanceId String
   performance   Performance     @relation(fields: [performanceId], references: [id])
+  userId        String?
+  user          User?           @relation(fields: [userId], references: [id])
   author        String
   date          String
   rating        Float
@@ -82,4 +84,5 @@ model User {
   password  String
   role      String   @default("USER")
   createdAt DateTime @default(now())
+  reviews   Review[]
 }

@@ -1,28 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/auth';
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const session = await auth();
+  if (!session?.user?.id || !session.user.name) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { id } = await params;
   const body = await req.json();
-  const { author, rating, text, emotions } = body as {
-    author: string;
+  const { rating, text, emotions } = body as {
     rating: number;
     text: string;
     emotions?: { emotion: string; score: number }[];
   };
 
-  if (!author || !rating || !text) {
-    return NextResponse.json({ error: 'author, rating and text are required' }, { status: 400 });
+  if (!rating || !text) {
+    return NextResponse.json({ error: 'rating and text are required' }, { status: 400 });
   }
 
   const review = await prisma.review.create({
     data: {
       id: crypto.randomUUID(),
       performanceId: id,
-      author,
+      userId: session.user.id,
+      author: session.user.name,
       rating,
       text,
       date: new Date().toISOString().split('T')[0],

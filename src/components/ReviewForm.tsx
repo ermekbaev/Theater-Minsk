@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { EMOTIONS_MAP } from '@/data/types';
 import type { Emotion } from '@/data/types';
 
@@ -22,7 +21,6 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
   const pathname = usePathname();
   const sessionName = session?.user?.name ?? '';
 
-  const [author, setAuthor] = useState('');
   const [rating, setRating] = useState(0);
   const [hovered, setHovered] = useState(0);
   const [text, setText] = useState('');
@@ -34,9 +32,8 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const displayName = sessionName || author.trim();
-    if (!displayName || !rating || !text.trim()) {
-      setError('Заполните имя, оценку и текст отзыва');
+    if (!rating || !text.trim()) {
+      setError('Заполните оценку и текст отзыва');
       return;
     }
     setError('');
@@ -49,12 +46,11 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
     const res = await fetch(`/api/performances/${performanceId}/reviews`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ author: displayName, rating, text: text.trim(), emotions }),
+      body: JSON.stringify({ rating, text: text.trim(), emotions }),
     });
 
     setLoading(false);
     if (res.ok) {
-      setAuthor('');
       setRating(0);
       setText('');
       setEmotionScores({ joy: 0, melancholy: 0, tension: 0, passion: 0, wonder: 0, sadness: 0 });
@@ -86,23 +82,9 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
     <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-5 space-y-5">
       <h3 className="font-display text-lg font-semibold text-foreground">Оставить отзыв</h3>
 
-      {/* Name — show field only if not authenticated */}
-      {!sessionName ? (
-        <div className="space-y-1.5">
-          <label className="font-body text-xs font-medium text-muted-foreground">Ваше имя</label>
-          <Input
-            value={author}
-            onChange={(e) => setAuthor(e.target.value)}
-            placeholder="Имя"
-            className="font-body"
-            maxLength={60}
-          />
-        </div>
-      ) : (
-        <p className="font-body text-sm text-muted-foreground">
-          Отзыв от: <span className="font-semibold text-foreground">{sessionName}</span>
-        </p>
-      )}
+      <p className="font-body text-sm text-muted-foreground">
+        Отзыв от: <span className="font-semibold text-foreground">{sessionName}</span>
+      </p>
 
       {/* Star rating */}
       <div className="space-y-1.5">
