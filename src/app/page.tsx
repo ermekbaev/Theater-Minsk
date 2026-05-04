@@ -168,7 +168,7 @@ export default function LandingPage() {
                   >
                     <Link href="/admin">
                       <ShieldCheck size={15} />
-                      Админ панель
+                      Панель администратора
                     </Link>
                   </Button>
                 )}
