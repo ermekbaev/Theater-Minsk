@@ -23,7 +23,9 @@ export default function AdminLayout({
     <div className="min-h-screen flex bg-gray-50">
       <aside className="w-60 bg-white border-r border-gray-200 flex flex-col">
         <div className="px-6 py-5 border-b border-gray-200">
-          <span className="font-semibold text-gray-900">Админ-панель</span>
+          <span className="font-semibold text-gray-900">
+            Панель администратора
+          </span>
           <p className="text-xs text-gray-500 mt-0.5">Театральный гид</p>
         </div>
         <nav className="flex-1 px-3 py-4 space-y-1">
