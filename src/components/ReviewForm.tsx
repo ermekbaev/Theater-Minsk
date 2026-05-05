@@ -7,25 +7,45 @@ import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { EMOTIONS_MAP } from '@/data/types';
-import type { Emotion } from '@/data/types';
+import type { Emotion, EmotionScore } from '@/data/types';
 
 interface Props {
   performanceId: string;
   onSuccess: () => void;
+  reviewId?: string;
+  initialRating?: number;
+  initialText?: string;
+  initialEmotions?: EmotionScore[];
+  onCancel?: () => void;
 }
 
 const EMOTIONS = Object.entries(EMOTIONS_MAP) as [Emotion, { label: string; color: string }][];
 
-export default function ReviewForm({ performanceId, onSuccess }: Props) {
+const EMPTY_SCORES: Record<Emotion, number> = {
+  joy: 0, melancholy: 0, tension: 0, passion: 0, wonder: 0, sadness: 0,
+};
+
+export default function ReviewForm({
+  performanceId,
+  onSuccess,
+  reviewId,
+  initialRating = 0,
+  initialText = '',
+  initialEmotions,
+  onCancel,
+}: Props) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const sessionName = session?.user?.name ?? '';
+  const isEdit = Boolean(reviewId);
 
-  const [rating, setRating] = useState(0);
+  const [rating, setRating] = useState(initialRating);
   const [hovered, setHovered] = useState(0);
-  const [text, setText] = useState('');
-  const [emotionScores, setEmotionScores] = useState<Record<Emotion, number>>({
-    joy: 0, melancholy: 0, tension: 0, passion: 0, wonder: 0, sadness: 0,
+  const [text, setText] = useState(initialText);
+  const [emotionScores, setEmotionScores] = useState<Record<Emotion, number>>(() => {
+    const base = { ...EMPTY_SCORES };
+    initialEmotions?.forEach((e) => { base[e.emotion] = e.score; });
+    return base;
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,25 +63,29 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
       .filter(([key]) => emotionScores[key] > 0)
       .map(([emotion]) => ({ emotion, score: emotionScores[emotion] }));
 
-    const res = await fetch(`/api/performances/${performanceId}/reviews`, {
-      method: 'POST',
+    const url = isEdit ? `/api/reviews/${reviewId}` : `/api/performances/${performanceId}/reviews`;
+    const method = isEdit ? 'PATCH' : 'POST';
+
+    const res = await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rating, text: text.trim(), emotions }),
     });
 
     setLoading(false);
     if (res.ok) {
-      setRating(0);
-      setText('');
-      setEmotionScores({ joy: 0, melancholy: 0, tension: 0, passion: 0, wonder: 0, sadness: 0 });
+      if (!isEdit) {
+        setRating(0);
+        setText('');
+        setEmotionScores({ ...EMPTY_SCORES });
+      }
       onSuccess();
     } else {
       setError('Ошибка при отправке. Попробуйте ещё раз.');
     }
   };
 
-  // Prompt unauthenticated users to log in
-  if (status !== 'loading' && !session) {
+  if (!isEdit && status !== 'loading' && !session) {
     return (
       <div className="rounded-lg border border-border bg-card p-5 text-center space-y-3">
         <h3 className="font-display text-lg font-semibold text-foreground">Оставить отзыв</h3>
@@ -80,13 +104,16 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
 
   return (
     <form onSubmit={handleSubmit} className="rounded-lg border border-border bg-card p-5 space-y-5">
-      <h3 className="font-display text-lg font-semibold text-foreground">Оставить отзыв</h3>
+      <h3 className="font-display text-lg font-semibold text-foreground">
+        {isEdit ? 'Редактировать отзыв' : 'Оставить отзыв'}
+      </h3>
 
-      <p className="font-body text-sm text-muted-foreground">
-        Отзыв от: <span className="font-semibold text-foreground">{sessionName}</span>
-      </p>
+      {!isEdit && (
+        <p className="font-body text-sm text-muted-foreground">
+          Отзыв от: <span className="font-semibold text-foreground">{sessionName}</span>
+        </p>
+      )}
 
-      {/* Star rating */}
       <div className="space-y-1.5">
         <label className="font-body text-xs font-medium text-muted-foreground">Оценка</label>
         <div className="flex gap-1">
@@ -112,7 +139,6 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
         </div>
       </div>
 
-      {/* Text */}
       <div className="space-y-1.5">
         <label className="font-body text-xs font-medium text-muted-foreground">Текст отзыва</label>
         <textarea
@@ -126,7 +152,6 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
         <p className="text-right font-body text-xs text-muted-foreground">{text.length}/1000</p>
       </div>
 
-      {/* Emotion sliders */}
       <div className="space-y-2">
         <label className="font-body text-xs font-medium text-muted-foreground">
           Эмоции (необязательно)
@@ -158,9 +183,16 @@ export default function ReviewForm({ performanceId, onSuccess }: Props) {
 
       {error && <p className="font-body text-xs text-destructive">{error}</p>}
 
-      <Button type="submit" disabled={loading} className="w-full">
-        {loading ? 'Отправка...' : 'Опубликовать отзыв'}
-      </Button>
+      <div className="flex gap-2">
+        <Button type="submit" disabled={loading} className="flex-1">
+          {loading ? 'Отправка...' : isEdit ? 'Сохранить' : 'Опубликовать отзыв'}
+        </Button>
+        {isEdit && onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel}>
+            Отмена
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

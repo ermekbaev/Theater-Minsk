@@ -4,7 +4,8 @@ import { use, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Calendar, Users, User, Theater } from "lucide-react";
+import { ArrowLeft, Clock, Calendar, Users, User, Theater, Pencil, Trash2 } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Header from "@/components/Header";
 import StarRating from "@/components/StarRating";
 import EmotionRadar from "@/components/EmotionRadar";
@@ -18,9 +19,12 @@ interface Props {
 
 export default function PerformanceDetailPage({ params }: Props) {
   const { id } = use(params);
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
   const [perf, setPerf] = useState<Performance | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
   const loadPerf = useCallback(() => {
     setLoading(true);
@@ -41,6 +45,16 @@ export default function PerformanceDetailPage({ params }: Props) {
   useEffect(() => {
     loadPerf();
   }, [loadPerf]);
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!confirm("Удалить ваш отзыв?")) return;
+    const res = await fetch(`/api/reviews/${reviewId}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("Не удалось удалить отзыв");
+      return;
+    }
+    loadPerf();
+  };
 
   if (loading) {
     return (
@@ -193,27 +207,67 @@ export default function PerformanceDetailPage({ params }: Props) {
                 Отзывы ({perf.reviews.length})
               </h2>
               <div className="space-y-4">
-                {perf.reviews.map((review) => (
-                  <div
-                    key={review.id}
-                    className="rounded-lg border border-border bg-card p-5"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-body font-semibold text-foreground">
-                        {review.author}
-                      </span>
-                      <span className="font-body text-xs text-muted-foreground">
-                        {review.date}
-                      </span>
+                {perf.reviews.map((review) => {
+                  const isOwner = !!currentUserId && review.userId === currentUserId;
+                  if (isOwner && editingReviewId === review.id) {
+                    return (
+                      <ReviewForm
+                        key={review.id}
+                        performanceId={perf.id}
+                        reviewId={review.id}
+                        initialRating={review.rating}
+                        initialText={review.text}
+                        initialEmotions={review.emotionScores}
+                        onCancel={() => setEditingReviewId(null)}
+                        onSuccess={() => {
+                          setEditingReviewId(null);
+                          loadPerf();
+                        }}
+                      />
+                    );
+                  }
+                  return (
+                    <div
+                      key={review.id}
+                      className="rounded-lg border border-border bg-card p-5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-body font-semibold text-foreground">
+                          {review.author}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <span className="font-body text-xs text-muted-foreground">
+                            {review.date}
+                          </span>
+                          {isOwner && (
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setEditingReviewId(review.id)}
+                                title="Редактировать"
+                                className="p-1 text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteReview(review.id)}
+                                title="Удалить"
+                                className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-1">
+                        <StarRating rating={review.rating} size={14} />
+                      </div>
+                      <p className="mt-3 font-body text-sm leading-relaxed text-foreground/85">
+                        {review.text}
+                      </p>
                     </div>
-                    <div className="mt-1">
-                      <StarRating rating={review.rating} size={14} />
-                    </div>
-                    <p className="mt-3 font-body text-sm leading-relaxed text-foreground/85">
-                      {review.text}
-                    </p>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-6">

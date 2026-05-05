@@ -41,8 +41,9 @@ export async function GET(
     emotionProfile: p.emotionProfile.map((ep: { emotion: string; score: number }) => ({ emotion: ep.emotion, score: ep.score })),
     targetAudience: p.targetAudience.map((ta: { tag: string }) => ta.tag),
     cast: p.cast.map((c: { name: string }) => c.name),
-    reviews: p.reviews.map((r: { id: string; author: string; date: string; rating: number; text: string; emotions: { emotion: string; score: number }[] }) => ({
+    reviews: p.reviews.map((r: { id: string; userId: string | null; author: string; date: string; rating: number; text: string; emotions: { emotion: string; score: number }[] }) => ({
       id: r.id,
+      userId: r.userId,
       author: r.author,
       date: r.date,
       rating: r.rating,

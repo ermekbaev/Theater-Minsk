@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Theater, Film, LogOut } from "lucide-react";
+import { LayoutDashboard, Theater, Film, Users, LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: "/admin", label: "Дашборд", icon: LayoutDashboard },
   { href: "/admin/performances", label: "Постановки", icon: Film },
   { href: "/admin/theaters", label: "Театры", icon: Theater },
+  { href: "/admin/users", label: "Пользователи", icon: Users },
 ];
 
 export default function AdminLayout({

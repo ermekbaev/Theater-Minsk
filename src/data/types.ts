@@ -7,6 +7,7 @@ export interface EmotionScore {
 
 export interface Review {
   id: string;
+  userId?: string | null;
   author: string;
   date: string;
   rating: number; // 1-5
